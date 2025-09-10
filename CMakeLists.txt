@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(FaceDetection)
+project(ImageTransform)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 11)
@@ -12,6 +12,6 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Add executable for OpenCV test
-add_executable(face_detection face_detection.cpp)
-target_link_libraries(face_detection ${OpenCV_LIBS})
+add_executable(image_transform image_transform.cpp)
+target_link_libraries(image_transform ${OpenCV_LIBS})
 
