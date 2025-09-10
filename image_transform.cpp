@@ -46,7 +46,7 @@ void drawControlsOverlay(Mat& image) {
 }
 
 int main() {
-    string imagePath = "/home/arpit/Downloads/profile-pic.jpeg";
+    string imagePath = "../selfie.png";
     string window = "Image Viewer";
 
     // Load the original color image
