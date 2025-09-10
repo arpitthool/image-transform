@@ -8,7 +8,7 @@ using namespace cv;
 
 int main() {
     string imagePath = "/home/arpit/Downloads/profile-pic.jpeg";
-    string window = "Grayscale Viewer";
+    string window = "Image Viewer";
 
     // Load the image
     Mat image = imread(imagePath);
@@ -17,16 +17,28 @@ int main() {
         return -1;
     }
 
-    // Convert to grayscale
-    Mat grayImage;
-    cvtColor(image, grayImage, COLOR_BGR2GRAY);
+    // Start with grayscale image
+    Mat currentImage;
+    cvtColor(image, currentImage, COLOR_BGR2GRAY);
 
-    // Show the grayscale image
-    imshow(window, grayImage);
+    cout << "Controls:" << endl;
+    cout << "  'b' - Apply blur" << endl;
+    cout << "  'q' or ESC - Quit" << endl;
 
-    // Wait until a key is pressed
-    cout << "Press any key to exit..." << endl;
-    waitKey(0);
+    while (true) {
+        imshow(window, currentImage);
+
+        char key = waitKey(30);
+        if (key == 'b' || key == 'B') {
+            // Apply Gaussian blur
+            GaussianBlur(currentImage, currentImage, Size(15, 15), 0);
+            cout << "Applied blur filter" << endl;
+        } else if (key == 'q' || key == 27) {
+            // Quit on 'q' or ESC
+            cout << "Exiting..." << endl;
+            break;
+        }
+    }
 
     destroyWindow(window);
     return 0;
