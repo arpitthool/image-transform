@@ -1,23 +1,20 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/objdetect.hpp>
 #include <iostream>
+#include <chrono>
 #include <vector>
 #include <string>
 
 using namespace std;
 using namespace cv;
 
-// Show the last operation text on the image
-void showTextOnImage(Mat& image, const string& text) {
+// Function to display text on image for a specified duration
+void showTextOnImage(Mat& image, const string text) {
     if (!text.empty()) {
-        putText(image,
-                "Last operation: " + text,
-                Point(10, 30),
-                FONT_HERSHEY_SIMPLEX,
-                1.0,
-                Scalar(0, 255, 0),
-                2);
+        putText(image, "Last operation: " + text, Point(10, 30),
+                FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2);
     }
 }
 
@@ -26,7 +23,7 @@ void drawControlsOverlay(Mat& image) {
     // Draw semi-transparent background for controls
     rectangle(image, Point(10, image.rows - 200), Point(400, image.rows - 10), Scalar(0, 0, 0), -1);
     rectangle(image, Point(10, image.rows - 200), Point(400, image.rows - 10), Scalar(255, 255, 255), 2);
-    
+
     // Draw control text
     vector<string> controls = {
         "Controls:",
@@ -34,10 +31,10 @@ void drawControlsOverlay(Mat& image) {
         "e - Edge Detection",
         "w - Brightness+  s - Brightness-",
         "d - Contrast+    a - Contrast-",
-        "r - Reset        h - Hide/Show", // TODO: implement hide
+        "r - Reset        h - Hide/Show",
         "q - Quit"
     };
-    
+
     int y_offset = image.rows - 180;
     for (const string& control : controls) {
         putText(image, control, Point(20, y_offset), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255, 255, 255), 1);
@@ -49,43 +46,47 @@ int main() {
     string imagePath = "../selfie.png";
     string window = "Image Viewer";
 
-    // Load the original color image
-    Mat original = imread(imagePath, IMREAD_COLOR);
-    if (original.empty()) {
+    Mat image = imread(imagePath);
+    if (image.empty()) {
         cout << "Error: Could not load image from " << imagePath << endl;
         return -1;
     }
 
-    Mat currentImage = original.clone();
-    string lastOperation = "";
-
+    cout << "Image loaded successfully!" << endl;
     cout << "Controls:" << endl;
-    cout << "  'b' - Apply blur" << endl;
-    cout << "  'g' - Apply grayscale" << endl;
+    cout << "  'g' - Convert to grayscale" << endl;
+    cout << "  'b' - Apply blur filter" << endl;
     cout << "  'e' - Apply edge detection" << endl;
     cout << "  'w' - Increase brightness" << endl;
     cout << "  's' - Decrease brightness" << endl;
     cout << "  'd' - Increase contrast" << endl;
     cout << "  'a' - Decrease contrast" << endl;
-    cout << "  'r' - Reset to original (color)" << endl;
+    cout << "  'r' - Reset to original" << endl;
+    cout << "  'h' - Hide/Show controls overlay" << endl;
     cout << "  'q' or ESC - Quit" << endl;
+
+    Mat currentImage = image.clone();   // Keep original image
+    string lastOperation = "";          // Track last operation
+    bool showControls = true;           // Toggle for controls display
 
     while (true) {
         Mat displayImage = currentImage.clone();
 
-        // Overlays
+        // Show operation text on image
         showTextOnImage(displayImage, lastOperation);
-        drawControlsOverlay(displayImage); // always visible in this commit
+
+        // Draw controls overlay if enabled
+        if (showControls) {
+            drawControlsOverlay(displayImage);
+        }
 
         imshow(window, displayImage);
 
-        char key = (char)waitKey(30);
-        if (key == 'b' || key == 'B') {
-            GaussianBlur(currentImage, currentImage, Size(15, 15), 0);
-            lastOperation = "Blur";
-            cout << "Applied blur filter" << endl;
-        }
-        else if (key == 'g' || key == 'G') {
+        // IMPORTANT: read as int and mask to ASCII range
+        int key = waitKey(30) & 0xFF;
+
+        if (key == 'g' || key == 'G') {
+            // Convert to grayscale
             if (currentImage.channels() == 3) {
                 cvtColor(currentImage, currentImage, COLOR_BGR2GRAY);
                 lastOperation = "Grayscale";
@@ -94,47 +95,64 @@ int main() {
                 cout << "Image is already grayscale" << endl;
             }
         }
+        else if (key == 'b' || key == 'B') {
+            // Apply blur
+            GaussianBlur(currentImage, currentImage, Size(15, 15), 0);
+            lastOperation = "Blur";
+            cout << "Applied blur filter" << endl;
+        }
         else if (key == 'e' || key == 'E') {
-            Mat gray, edges;
+            // Apply edge detection
+            Mat gray;
             if (currentImage.channels() == 3) {
                 cvtColor(currentImage, gray, COLOR_BGR2GRAY);
             } else {
-                gray = currentImage;
+                gray = currentImage.clone();
             }
-            Canny(gray, edges, 100, 200);
-            currentImage = edges;
+            Canny(gray, currentImage, 100, 200);
             lastOperation = "Edge Detection";
             cout << "Applied edge detection" << endl;
         }
+        else if (key == 'r' || key == 'R') {
+            // Reset to original
+            currentImage = image.clone();
+            lastOperation = "Reset";
+            cout << "Reset to original image" << endl;
+        }
+        else if (key == 'h' || key == 'H') {
+            // Toggle controls display
+            showControls = !showControls;
+            cout << "Controls " << (showControls ? "shown" : "hidden") << endl;
+        }
         else if (key == 'w' || key == 'W') {
+            // Increase brightness
             currentImage = currentImage + Scalar(30, 30, 30);
             lastOperation = "Brightness +";
             cout << "Increased brightness" << endl;
         }
         else if (key == 's' || key == 'S') {
+            // Decrease brightness
             currentImage = currentImage - Scalar(30, 30, 30);
             lastOperation = "Brightness -";
             cout << "Decreased brightness" << endl;
         }
         else if (key == 'd' || key == 'D') {
+            // Increase contrast
             currentImage.convertTo(currentImage, -1, 1.2, 0);
             lastOperation = "Contrast +";
             cout << "Increased contrast" << endl;
         }
         else if (key == 'a' || key == 'A') {
+            // Decrease contrast
             currentImage.convertTo(currentImage, -1, 0.8, 0);
             lastOperation = "Contrast -";
             cout << "Decreased contrast" << endl;
         }
-        else if (key == 'r' || key == 'R') {
-            currentImage = original.clone();
-            lastOperation = "Reset";
-            cout << "Reset to original color image" << endl;
-        }
-        else if (key == 'q' || key == 27) {
+        else if (key == 'q' || key == 27) { // 'q' or ESC to quit
             cout << "Exiting..." << endl;
             break;
         }
+        // if key == -1 (no key), loop continues
     }
 
     destroyWindow(window);
