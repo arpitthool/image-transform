@@ -2,11 +2,13 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <vector>
+#include <string>
 
 using namespace std;
 using namespace cv;
 
-// Function to display the last operation text on the image
+// Show the last operation text on the image
 void showTextOnImage(Mat& image, const string& text) {
     if (!text.empty()) {
         putText(image,
@@ -16,6 +18,30 @@ void showTextOnImage(Mat& image, const string& text) {
                 1.0,
                 Scalar(0, 255, 0),
                 2);
+    }
+}
+
+// Function to draw controls overlay on image
+void drawControlsOverlay(Mat& image) {
+    // Draw semi-transparent background for controls
+    rectangle(image, Point(10, image.rows - 200), Point(400, image.rows - 10), Scalar(0, 0, 0), -1);
+    rectangle(image, Point(10, image.rows - 200), Point(400, image.rows - 10), Scalar(255, 255, 255), 2);
+    
+    // Draw control text
+    vector<string> controls = {
+        "Controls:",
+        "g - Grayscale    b - Blur",
+        "e - Edge Detection",
+        "w - Brightness+  s - Brightness-",
+        "d - Contrast+    a - Contrast-",
+        "r - Reset        h - Hide/Show", // TODO: implement hide
+        "q - Quit"
+    };
+    
+    int y_offset = image.rows - 180;
+    for (const string& control : controls) {
+        putText(image, control, Point(20, y_offset), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255, 255, 255), 1);
+        y_offset += 25;
     }
 }
 
@@ -30,7 +56,6 @@ int main() {
         return -1;
     }
 
-    // Current working image starts as the original color image
     Mat currentImage = original.clone();
     string lastOperation = "";
 
@@ -48,8 +73,9 @@ int main() {
     while (true) {
         Mat displayImage = currentImage.clone();
 
-        // Overlay last operation text
+        // Overlays
         showTextOnImage(displayImage, lastOperation);
+        drawControlsOverlay(displayImage); // always visible in this commit
 
         imshow(window, displayImage);
 
