@@ -11,8 +11,7 @@ int main() {
     string window = "Image Viewer";
 
     // Load the original color image
-    Mat original;
-    original = imread(imagePath, IMREAD_COLOR);
+    Mat original = imread(imagePath, IMREAD_COLOR);
     if (original.empty()) {
         cout << "Error: Could not load image from " << imagePath << endl;
         return -1;
@@ -25,6 +24,10 @@ int main() {
     cout << "  'b' - Apply blur" << endl;
     cout << "  'g' - Apply grayscale" << endl;
     cout << "  'e' - Apply edge detection" << endl;
+    cout << "  'w' - Increase brightness" << endl;
+    cout << "  's' - Decrease brightness" << endl;
+    cout << "  'd' - Increase contrast" << endl;
+    cout << "  'a' - Decrease contrast" << endl;
     cout << "  'r' - Reset to original (color)" << endl;
     cout << "  'q' or ESC - Quit" << endl;
 
@@ -33,19 +36,20 @@ int main() {
 
         char key = (char)waitKey(30);
         if (key == 'b' || key == 'B') {
-            // Apply Gaussian blur (works on color or grayscale)
             GaussianBlur(currentImage, currentImage, Size(15, 15), 0);
             cout << "Applied blur filter" << endl;
         }
-        if (key == 'g' || key == 'G') {
-            // Apply Gaussian blur (works on color or grayscale)
-            Mat gray;
-            cvtColor(currentImage, gray, COLOR_BGR2GRAY);
-            currentImage = gray;
-            cout << "Applied gray filter" << endl;
+        else if (key == 'g' || key == 'G') {
+            if (currentImage.channels() == 3) {
+                Mat gray;
+                cvtColor(currentImage, gray, COLOR_BGR2GRAY);
+                currentImage = gray;
+                cout << "Applied grayscale filter" << endl;
+            } else {
+                cout << "Image is already grayscale" << endl;
+            }
         }
         else if (key == 'e' || key == 'E') {
-            // Apply Canny edge detection (compute on grayscale)
             Mat gray, edges;
             if (currentImage.channels() == 3) {
                 cvtColor(currentImage, gray, COLOR_BGR2GRAY);
@@ -53,11 +57,26 @@ int main() {
                 gray = currentImage;
             }
             Canny(gray, edges, 100, 200);
-            currentImage = edges; // keep edges as single-channel image
+            currentImage = edges; // single-channel edges
             cout << "Applied edge detection" << endl;
         }
+        else if (key == 'w' || key == 'W') {
+            currentImage = currentImage + Scalar(30, 30, 30); // brighten
+            cout << "Increased brightness" << endl;
+        }
+        else if (key == 's' || key == 'S') {
+            currentImage = currentImage - Scalar(30, 30, 30); // darken
+            cout << "Decreased brightness" << endl;
+        }
+        else if (key == 'd' || key == 'D') {
+            currentImage.convertTo(currentImage, -1, 1.2, 0); // increase contrast
+            cout << "Increased contrast" << endl;
+        }
+        else if (key == 'a' || key == 'A') {
+            currentImage.convertTo(currentImage, -1, 0.8, 0); // decrease contrast
+            cout << "Decreased contrast" << endl;
+        }
         else if (key == 'r' || key == 'R') {
-            // Reset to the original color image
             currentImage = original.clone();
             cout << "Reset to original color image" << endl;
         }
