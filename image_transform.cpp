@@ -6,6 +6,7 @@
 #include <chrono>
 #include <vector>
 #include <string>
+#include <ctime>
 
 using namespace std;
 using namespace cv;
@@ -31,8 +32,8 @@ void drawControlsOverlay(Mat& image) {
         "e - Edge Detection",
         "w - Brightness+  s - Brightness-",
         "d - Contrast+    a - Contrast-",
-        "r - Reset        h - Hide/Show",
-        "q - Quit"
+        "r - Reset        v - Save Image",
+        "h - Hide/Show    q - Quit"
     };
 
     int y_offset = image.rows - 180;
@@ -62,12 +63,22 @@ int main() {
     cout << "  'd' - Increase contrast" << endl;
     cout << "  'a' - Decrease contrast" << endl;
     cout << "  'r' - Reset to original" << endl;
+    cout << "  'v' - Save current image" << endl;
     cout << "  'h' - Hide/Show controls overlay" << endl;
     cout << "  'q' or ESC - Quit" << endl;
 
     Mat currentImage = image.clone();   // Keep original image
     string lastOperation = "";          // Track last operation
     bool showControls = true;           // Toggle for controls display
+    
+    // Extract file extension from original image path
+    string originalExtension = "";
+    size_t dotPos = imagePath.find_last_of(".");
+    if (dotPos != string::npos) {
+        originalExtension = imagePath.substr(dotPos);
+    } else {
+        originalExtension = ".png"; // Default fallback
+    }
 
     while (true) {
         Mat displayImage = currentImage.clone();
@@ -147,6 +158,18 @@ int main() {
             currentImage.convertTo(currentImage, -1, 0.8, 0);
             lastOperation = "Contrast -";
             cout << "Decreased contrast" << endl;
+        }
+        else if (key == 'v' || key == 'V') {
+            // Save current image with original extension
+            string filename = "image_transform_" + to_string(time(nullptr)) + originalExtension;
+            bool success = imwrite(filename, currentImage);
+            if (success) {
+                lastOperation = "Image saved in build folder: " + filename;
+                cout << "Image saved as: " << filename << endl;
+            } else {
+                lastOperation = "Save failed";
+                cout << "Failed to save image!" << endl;
+            }
         }
         else if (key == 'q' || key == 27) { // 'q' or ESC to quit
             cout << "Exiting..." << endl;
