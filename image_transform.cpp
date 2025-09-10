@@ -23,6 +23,7 @@ int main() {
 
     cout << "Controls:" << endl;
     cout << "  'b' - Apply blur" << endl;
+    cout << "  'e' - Apply edge detection" << endl;
     cout << "  'q' or ESC - Quit" << endl;
 
     while (true) {
@@ -33,7 +34,15 @@ int main() {
             // Apply Gaussian blur
             GaussianBlur(currentImage, currentImage, Size(15, 15), 0);
             cout << "Applied blur filter" << endl;
-        } else if (key == 'q' || key == 27) {
+        } 
+        else if (key == 'e' || key == 'E') {
+            // Apply Canny edge detection
+            Mat edges;
+            Canny(currentImage, edges, 100, 200);
+            currentImage = edges;
+            cout << "Applied edge detection" << endl;
+        } 
+        else if (key == 'q' || key == 27) {
             // Quit on 'q' or ESC
             cout << "Exiting..." << endl;
             break;
