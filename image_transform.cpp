@@ -6,6 +6,19 @@
 using namespace std;
 using namespace cv;
 
+// Function to display the last operation text on the image
+void showTextOnImage(Mat& image, const string& text) {
+    if (!text.empty()) {
+        putText(image,
+                "Last operation: " + text,
+                Point(10, 30),
+                FONT_HERSHEY_SIMPLEX,
+                1.0,
+                Scalar(0, 255, 0),
+                2);
+    }
+}
+
 int main() {
     string imagePath = "/home/arpit/Downloads/profile-pic.jpeg";
     string window = "Image Viewer";
@@ -19,6 +32,7 @@ int main() {
 
     // Current working image starts as the original color image
     Mat currentImage = original.clone();
+    string lastOperation = "";
 
     cout << "Controls:" << endl;
     cout << "  'b' - Apply blur" << endl;
@@ -32,18 +46,23 @@ int main() {
     cout << "  'q' or ESC - Quit" << endl;
 
     while (true) {
-        imshow(window, currentImage);
+        Mat displayImage = currentImage.clone();
+
+        // Overlay last operation text
+        showTextOnImage(displayImage, lastOperation);
+
+        imshow(window, displayImage);
 
         char key = (char)waitKey(30);
         if (key == 'b' || key == 'B') {
             GaussianBlur(currentImage, currentImage, Size(15, 15), 0);
+            lastOperation = "Blur";
             cout << "Applied blur filter" << endl;
         }
         else if (key == 'g' || key == 'G') {
             if (currentImage.channels() == 3) {
-                Mat gray;
-                cvtColor(currentImage, gray, COLOR_BGR2GRAY);
-                currentImage = gray;
+                cvtColor(currentImage, currentImage, COLOR_BGR2GRAY);
+                lastOperation = "Grayscale";
                 cout << "Applied grayscale filter" << endl;
             } else {
                 cout << "Image is already grayscale" << endl;
@@ -57,27 +76,33 @@ int main() {
                 gray = currentImage;
             }
             Canny(gray, edges, 100, 200);
-            currentImage = edges; // single-channel edges
+            currentImage = edges;
+            lastOperation = "Edge Detection";
             cout << "Applied edge detection" << endl;
         }
         else if (key == 'w' || key == 'W') {
-            currentImage = currentImage + Scalar(30, 30, 30); // brighten
+            currentImage = currentImage + Scalar(30, 30, 30);
+            lastOperation = "Brightness +";
             cout << "Increased brightness" << endl;
         }
         else if (key == 's' || key == 'S') {
-            currentImage = currentImage - Scalar(30, 30, 30); // darken
+            currentImage = currentImage - Scalar(30, 30, 30);
+            lastOperation = "Brightness -";
             cout << "Decreased brightness" << endl;
         }
         else if (key == 'd' || key == 'D') {
-            currentImage.convertTo(currentImage, -1, 1.2, 0); // increase contrast
+            currentImage.convertTo(currentImage, -1, 1.2, 0);
+            lastOperation = "Contrast +";
             cout << "Increased contrast" << endl;
         }
         else if (key == 'a' || key == 'A') {
-            currentImage.convertTo(currentImage, -1, 0.8, 0); // decrease contrast
+            currentImage.convertTo(currentImage, -1, 0.8, 0);
+            lastOperation = "Contrast -";
             cout << "Decreased contrast" << endl;
         }
         else if (key == 'r' || key == 'R') {
             currentImage = original.clone();
+            lastOperation = "Reset";
             cout << "Reset to original color image" << endl;
         }
         else if (key == 'q' || key == 27) {
