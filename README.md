@@ -2,7 +2,13 @@
 
 # Image Transformation C++ App
 
-A C++ application for editing images using OpenCV
+A C++ application for editing images using OpenCV having features to:
+- apply grayscale filter
+- increase/decrease brightness
+- increase/decrease contrast
+- apply blur
+- edge detection
+- save the newly created image
 
 ## Requirements
 
