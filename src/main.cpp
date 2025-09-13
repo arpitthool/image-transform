@@ -43,6 +43,26 @@ void drawControlsOverlay(Mat& image) {
     }
 }
 
+// Function to convert image to grayscale
+Mat convertToGrayscale(Mat image) {
+    if (image.channels() == 3) {
+        Mat gray;
+        cvtColor(image, gray, COLOR_BGR2GRAY);
+        cout << "Applied grayscale filter" << endl;
+        return gray;
+    } else {
+        cout << "Image is already grayscale" << endl;
+        return image;
+    }
+}
+
+Mat convertToGaussianFilter(Mat image) {
+    Mat blur;
+    GaussianBlur(image, blur, Size(15, 15), 0);
+    cout << "Applied blur filter" << endl;
+    return blur;
+}
+
 int main() {
     string imagePath = "../selfie.png";
     string window = "Image Viewer";
@@ -98,19 +118,13 @@ int main() {
 
         if (key == 'g' || key == 'G') {
             // Convert to grayscale
-            if (currentImage.channels() == 3) {
-                cvtColor(currentImage, currentImage, COLOR_BGR2GRAY);
-                lastOperation = "Grayscale";
-                cout << "Applied grayscale filter" << endl;
-            } else {
-                cout << "Image is already grayscale" << endl;
-            }
+            currentImage = convertToGrayscale(currentImage);
+            lastOperation = "Grayscale";
         }
         else if (key == 'b' || key == 'B') {
             // Apply blur
-            GaussianBlur(currentImage, currentImage, Size(15, 15), 0);
+            convertToGaussianFilter(currentImage);
             lastOperation = "Blur";
-            cout << "Applied blur filter" << endl;
         }
         else if (key == 'e' || key == 'E') {
             // Apply edge detection
