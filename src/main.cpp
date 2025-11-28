@@ -22,8 +22,8 @@ void showTextOnImage(Mat& image, const string text) {
 // Function to draw controls overlay on image
 void drawControlsOverlay(Mat& image) {
     // Draw semi-transparent background for controls
-    rectangle(image, Point(10, image.rows - 200), Point(400, image.rows - 10), Scalar(0, 0, 0), -1);
-    rectangle(image, Point(10, image.rows - 200), Point(400, image.rows - 10), Scalar(255, 255, 255), 2);
+    rectangle(image, Point(10, image.rows - 220), Point(400, image.rows - 10), Scalar(0, 0, 0), -1);
+    rectangle(image, Point(10, image.rows - 220), Point(400, image.rows - 10), Scalar(255, 255, 255), 2);
 
     // Draw control text
     vector<string> controls = {
@@ -32,11 +32,12 @@ void drawControlsOverlay(Mat& image) {
         "e - Edge Detection",
         "w - Brightness+  s - Brightness-",
         "d - Contrast+    a - Contrast-",
-        "r - Reset        v - Save Image",
-        "h - Hide/Show    q - Quit"
+        "t - Rotate Clockwise (10°) r - Reset",
+        "v - Save Image   h - Hide/Show",
+        "q - Quit"
     };
 
-    int y_offset = image.rows - 180;
+    int y_offset = image.rows - 200;
     for (const string& control : controls) {
         putText(image, control, Point(20, y_offset), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255, 255, 255), 1);
         y_offset += 25;
@@ -63,6 +64,32 @@ Mat convertToGaussianFilter(Mat image) {
     return blur;
 }
 
+// Function to rotate image by custom angle
+Mat rotateImage(Mat image, double angle) {
+    Point2f center(image.cols / 2.0, image.rows / 2.0);
+    Mat rotationMatrix = getRotationMatrix2D(center, angle, 1.0);
+    
+    // Calculate bounding box
+    // Rect2f bbox = RotatedRect(Point2f(), image.size(), angle).boundingRect2f();
+    /**
+    . Original image center
+    Original center X: image.cols / 2.0
+    Original center Y: image.rows / 2.0
+    2. New bounding box center
+    New center X: bbox.width / 2.0
+    New center Y: bbox.height / 2.0
+    3. Offset needed
+    X offset: bbox.width / 2.0 - image.cols / 2.0
+    Y offset: bbox.height / 2.0 - image.rows / 2.0
+    */
+    // rotationMatrix.at<double>(0, 2) += bbox.width / 2.0 - image.cols / 2.0;
+    // rotationMatrix.at<double>(1, 2) += bbox.height / 2.0 - image.rows / 2.0;
+    
+    Mat rotated;
+    warpAffine(image, rotated, rotationMatrix, image.size());
+    return rotated;
+}
+
 int main() {
     string imagePath = "../selfie.png";
     string window = "Image Viewer";
@@ -72,20 +99,6 @@ int main() {
         cout << "Error: Could not load image from " << imagePath << endl;
         return -1;
     }
-
-    cout << "Image loaded successfully!" << endl;
-    cout << "Controls:" << endl;
-    cout << "  'g' - Convert to grayscale" << endl;
-    cout << "  'b' - Apply blur filter" << endl;
-    cout << "  'e' - Apply edge detection" << endl;
-    cout << "  'w' - Increase brightness" << endl;
-    cout << "  's' - Decrease brightness" << endl;
-    cout << "  'd' - Increase contrast" << endl;
-    cout << "  'a' - Decrease contrast" << endl;
-    cout << "  'r' - Reset to original" << endl;
-    cout << "  'v' - Save current image" << endl;
-    cout << "  'h' - Hide/Show controls overlay" << endl;
-    cout << "  'q' or ESC - Quit" << endl;
 
     Mat currentImage = image.clone();   // Keep original image
     string lastOperation = "";          // Track last operation
@@ -172,6 +185,13 @@ int main() {
             currentImage.convertTo(currentImage, -1, 0.8, 0);
             lastOperation = "Contrast -";
             cout << "Decreased contrast" << endl;
+        }
+        else if (key == 't' || key == 'T') {
+            // Rotate by custom angle
+            double angle = 10;
+            currentImage = rotateImage(currentImage, angle);
+            lastOperation = "Rotate " + to_string((int)angle) + "°";
+            cout << "Rotated image by " << angle << "°" << endl;
         }
         else if (key == 'v' || key == 'V') {
             // Save current image with original extension
