@@ -117,14 +117,16 @@ Mat rotate3D(Mat image, char axis, double angle, double depth = 0.3) {
     // Apply rotation to 3D points
     vector<Point3f> dstPoints3D;
     for (const Point3f& pt : srcPoints3D) {
-        Mat ptMat = (Mat_<double>(3, 1) << pt.x - width/2.0, pt.y - height/2.0, pt.z);
-        Mat rotatedPt = rotationMatrix3D * ptMat;
+        Mat ptMat = (Mat_<double>(3, 1) << pt.x - width/2.0, pt.y - height/2.0, pt.z); // shift the origin to the center of the image
+        Mat rotatedPt = rotationMatrix3D * ptMat; // apply the rotation matrix to the point respect to image center
         
         // Add depth effect for x and y rotations
         if (axis == 'x' || axis == 'X' || axis == 'y' || axis == 'Y') {
-            rotatedPt.at<double>(2, 0) += depth * width * abs(sin(angleRad));
+            rotatedPt.at<double>(2, 0) += depth * width * abs(sin(angleRad)); // add the depth effect for x and y rotations
+            // i.e. enhance the 3D effect for x and y rotations
         }
         
+        // shift the point back to the original position
         dstPoints3D.push_back(Point3f(
             rotatedPt.at<double>(0, 0) + width/2.0,
             rotatedPt.at<double>(1, 0) + height/2.0,
@@ -155,7 +157,8 @@ Mat rotate3D(Mat image, char axis, double angle, double depth = 0.3) {
     }
     
     // Calculate homography matrix
-    Mat homography = getPerspectiveTransform(srcPoints2D, dstPoints2D);
+    Mat homography = getPerspectiveTransform(srcPoints2D, dstPoints2D); // get the perspective transformation matrix
+    // i.e. the matrix that transforms the source points to the destination points
     
     // Calculate bounding box of transformed image
     vector<Point2f> corners;
@@ -165,7 +168,7 @@ Mat rotate3D(Mat image, char axis, double angle, double depth = 0.3) {
     corners.push_back(Point2f(0, height));
     
     vector<Point2f> transformedCorners;
-    perspectiveTransform(corners, transformedCorners, homography);
+    perspectiveTransform(corners, transformedCorners, homography); // apply the perspective transformation matrix to the corners
     
     // Find bounding rect
     Rect bbox = boundingRect(transformedCorners);
@@ -176,9 +179,10 @@ Mat rotate3D(Mat image, char axis, double angle, double depth = 0.3) {
         0, 1, -bbox.y + (height - bbox.height) / 2.0,
         0, 0, 1);
     
-    Mat adjustedHomography = translation * homography;
+    Mat adjustedHomography = translation * homography; // apply the translation matrix to the perspective transformation matrix
+    // to center the transformed image in the original image
     
-    // Apply perspective transformation
+    // Apply perspective transformation to the whole image
     Mat result;
     warpPerspective(image, result, adjustedHomography, image.size(), 
                    INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0));
