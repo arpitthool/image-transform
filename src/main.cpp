@@ -92,7 +92,7 @@ Mat rotate3D(Mat image, char axis, double angle, double depth = 0.3) {
     srcPoints3D.push_back(Point3f(0, height, 0));      // Bottom-left
     
     // Create rotation matrix based on axis
-    Mat rotationMatrix3D = Mat::eye(3, 3, CV_64F);
+    Mat rotationMatrix3D = Mat::eye(3, 3, CV_64F); 
     
     if (axis == 'x' || axis == 'X') {
         // Rotation around X-axis (pitch)
@@ -312,6 +312,7 @@ int main() {
         else if (key == 'x' || key == 'X') {
             // Rotate 3D around X-axis
             current3DAngleX += 30.0;
+            // we use the original image (originalImage) as input to avoid cumulative distortion from repeated rotations.
             currentImage = rotate3D(originalImage, 'x', current3DAngleX);
             lastOperation = "3D Rotate X " + to_string((int)current3DAngleX) + "°";
             cout << "3D Rotated around X-axis by " << current3DAngleX << "°" << endl;
@@ -319,6 +320,7 @@ int main() {
         else if (key == 'y' || key == 'Y') {
             // Rotate 3D around Y-axis
             current3DAngleY += 30.0;
+            // we use the original image (originalImage) as input to avoid cumulative distortion from repeated rotations.
             currentImage = rotate3D(originalImage, 'y', current3DAngleY);
             lastOperation = "3D Rotate Y " + to_string((int)current3DAngleY) + "°";
             cout << "3D Rotated around Y-axis by " << current3DAngleY << "°" << endl;
@@ -326,6 +328,7 @@ int main() {
         else if (key == 'z' || key == 'Z') {
             // Rotate 3D around Z-axis (30 degrees as requested)
             current3DAngleZ += 30.0;
+            // we use the original image (originalImage) as input to avoid cumulative distortion from repeated rotations.
             currentImage = rotate3D(originalImage, 'z', current3DAngleZ);
             lastOperation = "3D Rotate Z " + to_string((int)current3DAngleZ) + "°";
             cout << "3D Rotated around Z-axis by " << current3DAngleZ << "°" << endl;
@@ -334,6 +337,7 @@ int main() {
             // Animate 3D rotation around X-axis
             double startAngle = current3DAngleX;
             double endAngle = current3DAngleX + 360.0;
+            // we use the original image (originalImage) as input to avoid cumulative distortion from repeated rotations.
             animate3DRotation(currentImage, originalImage, 'x', startAngle, endAngle);
             current3DAngleX = fmod(current3DAngleX + 360.0, 360.0);
             lastOperation = "Animated 3D Rotate X";
@@ -343,6 +347,7 @@ int main() {
             // Animate 3D rotation around Y-axis
             double startAngle = current3DAngleY;
             double endAngle = current3DAngleY + 360.0;
+            // we use the original image (originalImage) as input to avoid cumulative distortion from repeated rotations.
             animate3DRotation(currentImage, originalImage, 'y', startAngle, endAngle);
             current3DAngleY = fmod(current3DAngleY + 360.0, 360.0);
             lastOperation = "Animated 3D Rotate Y";
@@ -352,6 +357,7 @@ int main() {
             // Animate 3D rotation around Z-axis
             double startAngle = current3DAngleZ;
             double endAngle = current3DAngleZ + 360.0;
+            // we use the original image (originalImage) as input to avoid cumulative distortion from repeated rotations.
             animate3DRotation(currentImage, originalImage, 'z', startAngle, endAngle);
             current3DAngleZ = fmod(current3DAngleZ + 360.0, 360.0);
             lastOperation = "Animated 3D Rotate Z";
